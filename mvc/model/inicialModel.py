@@ -1,11 +1,9 @@
-import shutil
-import os
-import time
+import os, stat, time, shutil
+import tkinter as tk
+import pandas as pd
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-import tkinter as tk
 from tkinter import filedialog
-import pandas as pd
 
 class inicialModel:
             
@@ -105,11 +103,18 @@ class inicialModel:
         principal = df[df['id'] == id]['caminho_principal'].iloc[0]
         secundario = df[df['id'] == id]['caminho_secundario'].iloc[0]
 
+        
+        # Função usada para lidar com erros ao tentar apagar arquivos/pastas protegidos
+        def handle_remove_readonly(func, path, exc_info):
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+                            
         # Apaga a pasta secundária e copia a principal recriando a secundária
         if os.path.exists(secundario):
-            shutil.rmtree(secundario)
+            shutil.rmtree(secundario, onexc=handle_remove_readonly)
             shutil.copytree(principal, secundario)
-
+            
+        # Depois de copiar tudo vai eliminar as pastas e arquivos bloqueados (filtro)
         # Lê as palavras bloqueadas (com extensão)
         df_palavras = pd.read_csv('palavras.csv')
         palavras_bloqueadas = [p.lower() for p in df_palavras[df_palavras['id_pasta'] == id]['palavra'].tolist()]
@@ -120,7 +125,7 @@ class inicialModel:
             for nome in dirs:
                 if nome.lower() in palavras_bloqueadas:
                     caminho = os.path.join(root, nome)
-                    shutil.rmtree(caminho)
+                    shutil.rmtree(caminho, onexc=handle_remove_readonly)
                     print(f"{nome} (diretório) -- Ignorado")
 
             # Remove arquivos com nomes completos (com extensão) bloqueados
