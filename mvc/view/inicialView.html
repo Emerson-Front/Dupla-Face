@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Dupla-Face</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="parte" id="principal"></div>
+
+        <div class="parte" id="secundario"></div>
+    </div>
+    <button class="adicionar" onclick="btn_adicionar()">Adicionar</button>
+    <button class="adicionar" onclick="location.reload()">Atualizar</button>
+
+    <script>
+        window.addEventListener('pywebviewready', () => {
+            (async () => {
+                const caminho = await window.pywebview.api.get_dados();
+                const [id, principal, secundario] = caminho;
+
+
+                let html_1 = "<h1>Pastas Principais</h1>";
+                let html_2 = "<h1>Pastas Cópias</h1>";
+                for (let i = 0; i < id.length; i++) {
+                    const get_filtro = await window.pywebview.api.get_filtro(id[i]);
+                    const palavras = get_filtro.map(p => `<li>${p}</li>`).join('');
+                    html_1 += `
+                            <div class="path-item">
+                                <div class="linha">
+                                    <svg id="${id[i]}" class="icon filter" onclick="btn_filtro(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                        viewBox="0 0 16 16">
+                                        <path
+                                            d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
+                                    </svg>
+                                    <svg id="${id[i]}" class="icon trash" onclick="btn_deletar(${id[i]})"
+                                        xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path
+                                            d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                                    </svg>
+                                    <span>${principal[i]}</span>
+                                </div>
+
+                                <div id="filtro_${id[i]}" class="janela_filtro">
+                                    <p>Filtro</p>
+                                    <ul>
+                                        ${palavras}
+                                    </ul>
+
+                                    <input id="input_${id[i]}" type="text" placeholder="Digite uma palavra">
+                                    <button onclick="adicionar_filtro(${id[i]})">OK</button>
+                                    <button onclick="location.reload()">Cancelar</button>
+
+                                </div>
+
+                            </div>
+                          `;
+                    html_2 += `
+                                <div class="path-item">
+                                    <svg id="${id[i]}" class="icon refresh" onclick="btn_atualizar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
+                                        <path
+                                            d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                                    </svg>
+                                    <svg id="${id[i]}" class="icon trash" onclick="btn_deletar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path
+                                            d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                                    </svg>
+                                    <span>${secundario[i]}</span>
+                                </div>
+                            `
+                }
+                document.getElementById("principal").innerHTML = html_1;
+                document.getElementById("secundario").innerHTML = html_2;
+            })();
+        });
+
+        async function btn_filtro(id) {
+            const filtro = document.getElementById("filtro_" + id);
+            filtro.style.display = "block";
+        }
+
+        async function adicionar_filtro(id) {
+            const input = document.getElementById("input_" + id);
+            const palavra = input.value;
+            await window.pywebview.api.adicionar_filtro(id, palavra);
+            location.reload();
+        }
+
+        async function btn_adicionar() {
+            await window.pywebview.api.btn_adicionar();
+            location.reload();
+        }
+
+        async function btn_deletar(id) {
+            await window.pywebview.api.btn_deletar(id);
+            location.reload();
+        }
+
+        async function btn_atualizar(id) {
+            await window.pywebview.api.btn_atualizar(id);
+            location.reload();
+        }
+
+
+    </script>
+
+
+
+</body>
+
+</html>

@@ -1,43 +1,34 @@
-from mvc.view.inicialView import inicialView
+import threading
 from mvc.model.inicialModel import inicialModel, Sincronizador
-import core.route as rota
+
 
 class inicialController:
     
-    def __init__(self, page):
-        self.page = page
+    def __init__(self):
         
-        id, caminho_principal, caminho_secundario = inicialModel.buscarPasta()
-
-        self.view = inicialView.pageInicial(page, id, caminho_principal, caminho_secundario)
+        threading.Thread(target=self.iniciar_sincronizacao, daemon=True).start()
         
-        
-        # Aqui adicione um "footer" futuramente talvez
-        
-        
-        self.iniciar_sincronizacao()
-             
-
     # adicionar pasta
-    def botao_adicionar(self):
-        principal, copia = inicialModel.escolher_pasta()
+    def btn_adicionar(self):
+        principal, copia = inicialModel.escolher_pasta()   
         inicialModel.adicionarPasta(principal, copia)
-        rota.Route(self.page.route, self.page)
-    
-    def botao_remover(page, id):
+
+    def get_dados(self):
+        id, principal, secundario = inicialModel.buscarPasta()
+        return id, principal, secundario
+        
+    def btn_deletar(self, id):
         inicialModel.deletarPasta(id)
-        rota.Route(page.route, page)
         print("Pasta removida com sucesso")
         
-    def botao_atualizar(page, id):
+    def btn_atualizar(self, id):
         # Vai apagar tudo da pasta secundaria e atualizar com a pasta principal
         inicialModel.atualizarPasta(id)
-        rota.Route(page.route, page)
         
-    def inserir_ignorar(id_pasta, palavra):
+    def adicionar_filtro(self, id_pasta, palavra):
         inicialModel.inserir_ignorar(id_pasta, palavra)
 
-    def get_ignorar(id_pasta):
+    def get_filtro(self, id_pasta):
         lista = inicialModel.get_ignorar(id_pasta)
         return lista
     
@@ -50,3 +41,4 @@ class inicialController:
         # Manter sincronização das pastas
         pastas = inicialModel.get_pastas()
         Sincronizador.monitorar_pastas(pastas)
+        

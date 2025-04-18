@@ -36,9 +36,9 @@ class inicialModel:
     # busca o caminho das pastas no banco de dados
     def buscarPasta():
         df = pd.read_csv('caminhos.csv')
-        id = df["id"]
-        caminho_principal = df["caminho_principal"]
-        caminho_secundario = df["caminho_secundario"]       
+        id = df["id"].tolist()
+        caminho_principal = df["caminho_principal"].tolist()
+        caminho_secundario = df["caminho_secundario"].tolist()
         return id, caminho_principal, caminho_secundario
     
     # deleta o caminho das pastas do banco de dados
