@@ -32,11 +32,17 @@ Oferecer uma solução simples e funcional para sincronização automática de a
 
 - **Linguagem de Programação**: Python
 - **Bibliotecas**:
-  - [Flet](https://flet.dev/) – Interface gráfica e interatividade
-  - [Tkinter](https://docs.python.org/3/library/tkinter.html) – Componentes adicionais de interface
-  - [Shutil](https://docs.python.org/3/library/shutil.html) – Operações de cópia e manipulação de arquivos
-  - [Watchdog](https://python-watchdog.readthedocs.io/) – Monitoramento de alterações no sistema de arquivos
-  - [Pandas](https://pandas.pydata.org/) – Manipulação e análise de dados (quando necessário)
+  ```
+  pip install pandas pyinstaller pystray pywebview watchdog pywin32 
+  ``` 
+  
+  - [Pandas](https://pandas.pydata.org/) – Manipulação e análise de dados
+  - [PyInstaller](https://www.pyinstaller.org/) – Empacota programas Python como executáveis independentes para Windows, Mac e Linux
+  - [Pystray](https://pystray.readthedocs.io/) – Criação de ícones de bandeja no sistema, permitindo a integração com a barra de tarefas
+  - [PyWebView](https://pywebview.flowrl.com/) – Criação de interfaces gráficas com um navegador embutido, fácil de usar para exibir páginas HTML
+  - [PyWin32](https://pypi.org/project/pywin32/) – Permite a interação com as APIs do Windows, como automação e controle de componentes COM
+  - [Watchdog](https://python-watchdog.readthedocs.io/) – Monitoramento de alterações no sistema de arquivos, útil para observar pastas e arquivos
+
 
 ---
 
