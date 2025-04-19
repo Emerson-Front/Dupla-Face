@@ -2,7 +2,6 @@ storage
 __pycache__
 build
 dist
-main.spec
 teste.py
 caminhos.csv
 palavras.csv

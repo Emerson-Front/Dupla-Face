@@ -7,14 +7,19 @@ class inicialController:
     
     def __init__(self):
         
-        threading.Thread(target=self.iniciar_sincronizacao, daemon=True).start()
+
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
+
+        
+        
         self.check = inicialModel.get_checked()
         
     # adicionar pasta
     def btn_adicionar(self):
         principal, copia = inicialModel.escolher_pasta()   
         inicialModel.adicionarPasta(principal, copia)
-        threading.Thread(target=self.iniciar_sincronizacao, daemon=True).start()
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
+
 
 
 
@@ -24,8 +29,9 @@ class inicialController:
         
     def btn_deletar(self, id):
         inicialModel.deletarPasta(id)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-        
+        #os.execl(sys.executable, sys.executable, *sys.argv)
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
+
         
     def btn_atualizar(self, id):
         # Vai apagar tudo da pasta secundaria e atualizar com a pasta principal
@@ -42,11 +48,17 @@ class inicialController:
         inicialModel.remover_ignorar(id_pasta, palavra)
         
     
-    def iniciar_sincronizacao(self):
+    def iniciar_sincronizacao(self, status):
         inicialModel.verificar_existencia_das_pastas_e_arquivos()
-        # Manter sincronização das pastas
-        pastas = inicialModel.get_pastas()
-        Sincronizador.monitorar_pastas(pastas)
+
+        if status == "start":
+            pares = inicialModel.get_pastas()
+            Sincronizador.monitorar_pastas(pares)
+
+        elif status == "stop":
+            Sincronizador.parar_monitoramento()
+            print("Monitoramento parado.")
+
     
     
     def btn_checkbox(self, check):
@@ -59,7 +71,8 @@ class inicialController:
         return self.check
     
     
-    
+    '''
     # Função para o desenvolvimento, vai recarregar o programa
     def btn_recarregar(self):
         os.execl(sys.executable, sys.executable, *sys.argv)
+    '''

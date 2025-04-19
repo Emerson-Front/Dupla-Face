@@ -1,4 +1,4 @@
-import os, stat, time, shutil, sys, win32com.client
+import os, stat, time, shutil, sys, win32com.client, threading
 import tkinter as tk
 import pandas as pd
 from watchdog.observers import Observer
@@ -104,7 +104,6 @@ class inicialModel:
                 df = df[df['caminho_principal'] != caminho]
                 df.to_csv('caminhos.csv', index=False)
                 
-        return caminhos
 
     def atualizarPasta(id):
         # Localiza a pasta principal e secundária
@@ -175,39 +174,23 @@ class inicialModel:
 
 
 
-class Sincronizador(FileSystemEventHandler):
-    """
-    Classe que gerencia a sincronização entre pastas,
-    monitorando eventos e refletindo as alterações na cópia.
 
-    Defina os pares de pastas para sincronizar nesse formato
-    pares_de_pastas = [
-        ("C:/Users/etads/Desktop/a", "C:/Users/etads/Desktop/b"),
-        ("C:/Users/etads/Desktop/c", "C:/Users/etads/Desktop/d"),
-    ]
-    
-    para usar:
-    Sincronizador.monitorar_pastas(pares_de_pastas)
-    """
+class Sincronizador(FileSystemEventHandler):
+    observers = []
+    thread = None
+    stop_event = threading.Event()
 
     def __init__(self, caminho_original: str, caminho_da_copia: str) -> None:
         self.caminho_original = caminho_original
         self.caminho_da_copia = caminho_da_copia
-        
-        
+
     def copiar_para_destino(self, src_path: str) -> None:
-        """
-        Copia arquivos e pastas.
-        :param src_path: Caminho do arquivo ou pasta a ser copiado.
-        """
-        
         caminho_relativo = os.path.relpath(src_path, self.caminho_original)
         destino = os.path.join(self.caminho_da_copia, caminho_relativo)
 
-        
         try:
             if os.path.isdir(src_path):
-                if not os.path.exists(destino):                    
+                if not os.path.exists(destino):
                     os.makedirs(destino)
                     print(f"Pasta criada na cópia: {destino}")
             elif os.path.isfile(src_path):
@@ -220,13 +203,9 @@ class Sincronizador(FileSystemEventHandler):
             print(f"Erro ao copiar {src_path}: {e}")
 
     def remover_do_destino(self, src_path: str) -> None:
-        """
-        Remove arquivos e pastas da cópia, preservando a hierarquia.
-        :param src_path: Caminho do arquivo ou pasta a ser removido.
-        """
         caminho_relativo = os.path.relpath(src_path, self.caminho_original)
         destino = os.path.join(self.caminho_da_copia, caminho_relativo)
-                
+
         try:
             if os.path.exists(destino):
                 if os.path.isdir(destino):
@@ -238,13 +217,10 @@ class Sincronizador(FileSystemEventHandler):
         except Exception as e:
             print(f"Erro ao remover {destino}: {e}")
 
-    # Métodos de manipulação de eventos do watchdog e filtro de nome de arquivos e pastas:
-
     def on_any_event(self, event):
         print(f"[{event.event_type.upper()}] - {event.src_path}")
-
         caminho_secundario = event.dest_path if event.event_type == "moved" and hasattr(event, "dest_path") else event.src_path
-        caminho_secundario = os.path.normpath(caminho_secundario)  # normaliza para evitar erros com / e \
+        caminho_secundario = os.path.normpath(caminho_secundario)
         nome_da_pasta = os.path.basename(caminho_secundario)
 
         print(f"Nome da pasta/arquivo: {nome_da_pasta}")
@@ -257,7 +233,6 @@ class Sincronizador(FileSystemEventHandler):
             self.remover_do_destino(event.src_path)
             return
 
-        # Continua normalmente com os eventos
         match event.event_type:
             case "created":
                 self.copiar_para_destino(event.src_path)
@@ -270,32 +245,39 @@ class Sincronizador(FileSystemEventHandler):
                 self.remover_do_destino(event.src_path)
 
 
+    @classmethod
+    def monitorar_pastas(cls, pares_de_pastas: list[tuple[str, str]]) -> None:
+        cls.parar_monitoramento()
+        cls.stop_event.clear()
+        cls.observers = []
+
+        def _monitor():
+            for caminho_original, caminho_da_copia in pares_de_pastas:
+                print(f"Monitorando '{caminho_original}' -> '{caminho_da_copia}'")
+                event_handler = cls(caminho_original, caminho_da_copia)
+                observer = Observer()
+                observer.schedule(event_handler, path=caminho_original, recursive=True)
+                observer.start()
+                cls.observers.append(observer)
+
+            while not cls.stop_event.is_set():
+                time.sleep(1)
+
+            for observer in cls.observers:
+                observer.stop()
+            for observer in cls.observers:
+                observer.join()
+                
+        cls.thread = threading.Thread(target=_monitor, daemon=True)
+        cls.thread.start()
 
 
     @classmethod
-    def monitorar_pastas(cls, pares_de_pastas: list[tuple[str, str]]) -> None:
-        """
-        Monitora múltiplas pastas e sincroniza as alterações de acordo com os pares informados.
-        :param pares_de_pastas: Lista de tuplas contendo (caminho_original, caminho_da_copia).
-        """
-        observers = []  # Lista para armazenar os observadores
-
-        for caminho_original, caminho_da_copia in pares_de_pastas:
-            print(f"Monitorando '{caminho_original}' -> '{caminho_da_copia}'")
-            event_handler = cls(caminho_original, caminho_da_copia)
-            observer = Observer()
-            observer.schedule(event_handler, path=caminho_original, recursive=True)
-            observer.start()
-            observers.append(observer)
-
-        try:
-            while True:
-                time.sleep(1)  # Mantém o programa em execução
-        except KeyboardInterrupt:
-            for observer in observers:
-                observer.stop()
-            for observer in observers:
-                observer.join()
+    def parar_monitoramento(cls):
+        cls.stop_event.set()
+        if cls.thread and cls.thread.is_alive():
+            cls.thread.join()
+        cls.observers = []
 
 
     def filtro(self, caminho_completo):
@@ -316,10 +298,7 @@ class Sincronizador(FileSystemEventHandler):
         df_palavras = pd.read_csv('palavras.csv')
         palavras_bloqueadas = [palavra.lower() for palavra in df_palavras[df_palavras['id_pasta'] == id]['palavra'].tolist()]
 
-        # Divida o caminho em partes, sem remover a extensão
         partes_do_caminho = caminho_completo.split(os.sep)
-        
-        # Agora, vamos comparar cada parte (pasta ou arquivo com a extensão)
         for parte in partes_do_caminho:
             if parte.lower() in palavras_bloqueadas:
                 return parte

@@ -8,18 +8,20 @@
 </head>
 
 <body>
+
     <div class="container">
         <div class="parte" id="principal"></div>
 
         <div class="parte" id="secundario"></div>
     </div>
+
     <button class="adicionar" onclick="btn_adicionar()">Adicionar</button>
 
     <div class="form-check form-switch" id="check"></div>
 
-
+    <!--
     <button style="padding: 5px 20px; display: block; margin: 50px auto" onclick="btn_recarregar()">Recarregar!</button>
-
+    -->
 
     <script>
         window.addEventListener('pywebviewready', () => {
@@ -148,12 +150,12 @@
         }
 
 
+        /*
         // Função para o desenvolvimento, vai reiniciar o programa
         function btn_recarregar() {
             window.pywebview.api.btn_recarregar();
         }
-
-
+        */
 
     </script>
 

@@ -40,13 +40,14 @@ def criar_icone():
 # Ação quando o item de menu é clicado
 def on_click(icon, item):
     if item.text == "Mostrar Janela":
-        webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController())
+        webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController(), maximized=True)
         webview.start()
 
 
 def sincronizar_no_tray():
-    inicialController.iniciar_sincronizacao(None)
-
+    inicialController.iniciar_sincronizacao(None, 'start')
+    
+    
 # Inicializa e executa o ícone na bandeja
 def iniciar_tray():
     

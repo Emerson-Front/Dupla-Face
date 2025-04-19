@@ -18,7 +18,7 @@ if __name__ == '__main__':
       iniciar_tray()
       sys.exit()
       
-   janela = webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController())
+   janela = webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController(), maximized=True)
    webview.start()
    
    iniciar_tray()
