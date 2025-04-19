@@ -14,7 +14,12 @@
         <div class="parte" id="secundario"></div>
     </div>
     <button class="adicionar" onclick="btn_adicionar()">Adicionar</button>
-    <button class="adicionar" onclick="location.reload()">Atualizar</button>
+
+    <div class="form-check form-switch" id="check"></div>
+
+
+    <button style="padding: 5px 20px; display: block; margin: 50px auto" onclick="btn_recarregar()">Recarregar!</button>
+
 
     <script>
         window.addEventListener('pywebviewready', () => {
@@ -22,12 +27,15 @@
                 const caminho = await window.pywebview.api.get_dados();
                 const [id, principal, secundario] = caminho;
 
+                const svg_X = '<svg fill="#FF0000" height="10px" width="10px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 460.775 460.775" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M285.08,230.397L456.218,59.27c6.076-6.077,6.076-15.911,0-21.986L423.511,4.565c-2.913-2.911-6.866-4.55-10.992-4.55 c-4.127,0-8.08,1.639-10.993,4.55l-171.138,171.14L59.25,4.565c-2.913-2.911-6.866-4.55-10.993-4.55 c-4.126,0-8.08,1.639-10.992,4.55L4.558,37.284c-6.077,6.075-6.077,15.909,0,21.986l171.138,171.128L4.575,401.505 c-6.074,6.077-6.074,15.911,0,21.986l32.709,32.719c2.911,2.911,6.865,4.55,10.992,4.55c4.127,0,8.08-1.639,10.994-4.55 l171.117-171.12l171.118,171.12c2.913,2.911,6.866,4.55,10.993,4.55c4.128,0,8.081-1.639,10.992-4.55l32.709-32.719 c6.074-6.075,6.074-15.909,0-21.986L285.08,230.397z"></path> </g></svg>';
 
                 let html_1 = "<h1>Pastas Principais</h1>";
                 let html_2 = "<h1>Pastas Cópias</h1>";
                 for (let i = 0; i < id.length; i++) {
                     const get_filtro = await window.pywebview.api.get_filtro(id[i]);
-                    const palavras = get_filtro.map(p => `<li>${p}</li>`).join('');
+                    const palavras = get_filtro.map((p) =>
+                        `<li>${p}<span onclick="remover_filtro('${id[i]}', '${p}')">${svg_X}</span></li>`
+                    ).join('');
                     html_1 += `
                             <div class="path-item">
                                 <div class="linha">
@@ -60,26 +68,46 @@
                           `;
                     html_2 += `
                                 <div class="path-item">
-                                    <svg id="${id[i]}" class="icon refresh" onclick="btn_atualizar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
-                                        <path
-                                            d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
-                                    </svg>
-                                    <svg id="${id[i]}" class="icon trash" onclick="btn_deletar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                                        <path
-                                            d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
-                                    </svg>
-                                    <span>${secundario[i]}</span>
+                                    <div class="linha">
+                                        <svg id="${id[i]}" class="icon refresh" onclick="btn_atualizar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
+                                            <path
+                                                d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                                        </svg>
+                                        <svg id="${id[i]}" class="icon trash" onclick="btn_deletar(${id[i]})" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                            <path
+                                                d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                                        </svg>
+                                        <span>${secundario[i]}</span>
+                                    </div>
                                 </div>
                             `
                 }
                 document.getElementById("principal").innerHTML = html_1;
                 document.getElementById("secundario").innerHTML = html_2;
+
+
+                // Checkbox marcado ou não ao abrir a janela
+                window.pywebview.api.get_checked().then(checked => {
+                    document.getElementById("check").innerHTML =
+                        `
+                        <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault"
+                        onclick="checkbox_change()" ${checked ? 'checked' : ''}>
+                        <label class="form-check-label">Iniciar com o computador</label>
+                        `;
+                });
+
+
+
             })();
         });
 
         async function btn_filtro(id) {
             const filtro = document.getElementById("filtro_" + id);
+            if (filtro.style.display == "block") {
+                filtro.style.display = "none";
+                return;
+            }
             filtro.style.display = "block";
         }
 
@@ -87,6 +115,11 @@
             const input = document.getElementById("input_" + id);
             const palavra = input.value;
             await window.pywebview.api.adicionar_filtro(id, palavra);
+            location.reload();
+        }
+
+        async function remover_filtro(id, palavra) {
+            await window.pywebview.api.remover_filtro(id, palavra);
             location.reload();
         }
 
@@ -104,6 +137,22 @@
             await window.pywebview.api.btn_atualizar(id);
             location.reload();
         }
+
+        function checkbox_change() {
+            const checkbox = document.getElementById('switchCheckDefault');
+            if (checkbox.checked) {
+                window.pywebview.api.btn_checkbox(true);
+            } else {
+                window.pywebview.api.btn_checkbox(false);
+            }
+        }
+
+
+        // Função para o desenvolvimento, vai reiniciar o programa
+        function btn_recarregar() {
+            window.pywebview.api.btn_recarregar();
+        }
+
 
 
     </script>

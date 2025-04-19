@@ -1,4 +1,4 @@
-import os, stat, time, shutil
+import os, stat, time, shutil, sys, win32com.client
 import tkinter as tk
 import pandas as pd
 from watchdog.observers import Observer
@@ -22,14 +22,16 @@ class inicialModel:
         }
         df = pd.concat([df, pd.DataFrame([dados])], ignore_index=True)
         df.to_csv('caminhos.csv', index=False) # Salvar
+
     
     # seleciona as pastas pra serem sincronizadas
     def escolher_pasta():
         root = tk.Tk()
         root.withdraw()
         root.attributes("-topmost", True) # Obriga a ser janela em primeiro plano
-        caminho_principal = filedialog.askdirectory(title="Escolha a pasta caminho_principal")
-        copia = filedialog.askdirectory(title="Escolha a pasta de cópia")
+        desktop_path = os.path.join(os.environ["USERPROFILE"], "Desktop")
+        caminho_principal = filedialog.askdirectory(initialdir=desktop_path, title="Escolha a pasta Principal")
+        copia = filedialog.askdirectory(initialdir=desktop_path,title="Escolha a pasta de Cópia")
         root.destroy()
         return caminho_principal, copia
 
@@ -79,8 +81,15 @@ class inicialModel:
     
     def remover_ignorar(id_pasta, palavra):
         df = pd.read_csv('palavras.csv')
+        df["id_pasta"] = df["id_pasta"].astype(str).str.strip()
+        df["palavra"] = df["palavra"].astype(str).str.strip()
+
+        id_pasta = str(id_pasta).strip()
+        palavra = str(palavra).strip()
+
         df = df[~((df["id_pasta"] == id_pasta) & (df["palavra"] == palavra))]
         df.to_csv('palavras.csv', index=False)
+        
 
     def verificar_existencia_das_pastas_e_arquivos():            
         # Verifica se as pastas existem
@@ -91,7 +100,7 @@ class inicialModel:
             if os.path.exists(caminho):
                 pass
             else:
-                # Se a pasta não existir, apagua da tabela
+                # Se a pasta não existir, apaga da tabela
                 df = df[df['caminho_principal'] != caminho]
                 df.to_csv('caminhos.csv', index=False)
                 
@@ -135,7 +144,33 @@ class inicialModel:
                     os.remove(caminho)
                     print(f"{nome} -- Ignorado")
 
+    def check_tray(check):
+        caminho_do_programa = os.path.abspath(sys.executable)
+        startup_path = os.path.join(os.getenv('APPDATA'), r'Microsoft\Windows\Start Menu\Programs\Startup')
+        caminho_do_atalho = os.path.join(startup_path, "Dupla Face.exe.lnk")
+        
+        if check:
+            shell = win32com.client.Dispatch("WScript.Shell")
+            atalho = shell.CreateShortCut(caminho_do_atalho)
+            atalho.Targetpath = caminho_do_programa
+            atalho.Arguments = "--tray"
+            atalho.WorkingDirectory = os.path.dirname(caminho_do_programa)
+            atalho.IconLocation = caminho_do_programa
+            atalho.save()
+            print("Tray está ativado e está no startup")
+                
+        else:
+            if os.path.exists(caminho_do_atalho):
+                os.remove(caminho_do_atalho)
+                print("Tray está desativado e foi removido do startup")
+            else:
+                print("Tray não está ativado e não está no startup")
 
+    def get_checked():
+        startup_path = os.path.join(os.getenv('APPDATA'), r'Microsoft\Windows\Start Menu\Programs\Startup')
+        caminho_do_atalho = os.path.join(startup_path, "Dupla Face.exe.lnk")
+        if os.path.exists(caminho_do_atalho):
+            return True
 
 
 

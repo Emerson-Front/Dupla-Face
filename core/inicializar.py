@@ -1,7 +1,6 @@
 import threading
 import os
-import flet as ft
-from core.route import Route
+import webview
 from pystray import Icon, MenuItem, Menu
 from PIL import Image, ImageDraw
 from mvc.controller.inicialController import inicialController
@@ -41,7 +40,8 @@ def criar_icone():
 # Ação quando o item de menu é clicado
 def on_click(icon, item):
     if item.text == "Mostrar Janela":
-        ft.app(target=main)
+        webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController())
+        webview.start()
 
 
 def sincronizar_no_tray():
@@ -64,6 +64,3 @@ def iniciar_tray():
     
     icone.run()
 
-
-def main(page: ft.Page):
-    Route(page.route, page)
