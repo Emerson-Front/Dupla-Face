@@ -21,8 +21,7 @@ Oferecer uma solução simples e funcional para sincronização automática de a
 
 - **Início Automático**  
   Opera em segundo plano e pode ser acessado por meio dos ícones ocultos na bandeja do sistema, mantendo a interface limpa e livre de interrupções.  
-  ➕ [Veja aqui como configurar o Dupla Face para iniciar junto com o Sistema](#️-iniciar-dupla-face-automaticamente-com-o-Sistema)
-
+ 
 - **Configuração Personalizável**  
   Permite ao usuário escolher quais pastas sincronizar e aplicar filtros para ignorar arquivos ou diretórios específicos.
 
