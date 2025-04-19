@@ -1,52 +1,78 @@
-from mvc.view.inicialView import inicialView
+import os, sys
+import threading
 from mvc.model.inicialModel import inicialModel, Sincronizador
-import core.route as rota
+
 
 class inicialController:
     
-    def __init__(self, page):
-        self.page = page
+    def __init__(self):
         
-        id, caminho_principal, caminho_secundario = inicialModel.buscarPasta()
 
-        self.view = inicialView.pageInicial(page, id, caminho_principal, caminho_secundario)
-        
-        
-        # Aqui adicione um "footer" futuramente talvez
-        
-        
-        self.iniciar_sincronizacao()
-             
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
 
+        
+        
+        self.check = inicialModel.get_checked()
+        
     # adicionar pasta
-    def botao_adicionar(self):
-        principal, copia = inicialModel.escolher_pasta()
+    def btn_adicionar(self):
+        principal, copia = inicialModel.escolher_pasta()   
         inicialModel.adicionarPasta(principal, copia)
-        rota.Route(self.page.route, self.page)
-    
-    def botao_remover(page, id):
-        inicialModel.deletarPasta(id)
-        rota.Route(page.route, page)
-        print("Pasta removida com sucesso")
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
+
+
+
+
+    def get_dados(self):
+        id, principal, secundario = inicialModel.buscarPasta()
+        return id, principal, secundario
         
-    def botao_atualizar(page, id):
+    def btn_deletar(self, id):
+        inicialModel.deletarPasta(id)
+        #os.execl(sys.executable, sys.executable, *sys.argv)
+        threading.Thread(target=self.iniciar_sincronizacao, args=('start',), daemon=True).start()
+
+        
+    def btn_atualizar(self, id):
         # Vai apagar tudo da pasta secundaria e atualizar com a pasta principal
         inicialModel.atualizarPasta(id)
-        rota.Route(page.route, page)
         
-    def inserir_ignorar(id_pasta, palavra):
+    def adicionar_filtro(self, id_pasta, palavra):
         inicialModel.inserir_ignorar(id_pasta, palavra)
 
-    def get_ignorar(id_pasta):
+    def get_filtro(self, id_pasta):
         lista = inicialModel.get_ignorar(id_pasta)
         return lista
     
-    def remover_ignorar(page, id_pasta, palavra):
+    def remover_filtro(self, id_pasta, palavra):
         inicialModel.remover_ignorar(id_pasta, palavra)
         
     
-    def iniciar_sincronizacao(self):
+    def iniciar_sincronizacao(self, status):
         inicialModel.verificar_existencia_das_pastas_e_arquivos()
-        # Manter sincronização das pastas
-        pastas = inicialModel.get_pastas()
-        Sincronizador.monitorar_pastas(pastas)
+
+        if status == "start":
+            pares = inicialModel.get_pastas()
+            Sincronizador.monitorar_pastas(pares)
+
+        elif status == "stop":
+            Sincronizador.parar_monitoramento()
+            print("Monitoramento parado.")
+
+    
+    
+    def btn_checkbox(self, check):
+        if check:
+            inicialModel.check_tray(True)
+        else:
+            inicialModel.check_tray(False)
+    
+    def get_checked(self):
+        return self.check
+    
+    
+    '''
+    # Função para o desenvolvimento, vai recarregar o programa
+    def btn_recarregar(self):
+        os.execl(sys.executable, sys.executable, *sys.argv)
+    '''

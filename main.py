@@ -1,9 +1,7 @@
-import sys
-import flet as ft
-from core.route import Route
-from core.inicializar import iniciar_tray, main
 import pandas as pd
-import os
+import webview, os, sys
+from mvc.controller.inicialController import inicialController
+from core.inicializar import iniciar_tray
 
 
     # Verifica se os arquivos da tabela existem
@@ -14,14 +12,13 @@ if not os.path.exists('caminhos.csv') or not os.path.exists('palavras.csv'):
     df = pd.DataFrame(columns=['id', 'id_pasta', 'palavra'])
     df.to_csv('palavras.csv', index=False)
 
-
-if __name__ == "__main__":
-    # Verifica se o programa foi iniciado com argumento --tray
-    if "--tray" in sys.argv:
-        iniciar_tray()
-    else:
-        ft.app(target=main)
- 
- 
-iniciar_tray()
-                                                                                                              
+if __name__ == '__main__':
+   
+   if "--tray" in sys.argv:
+      iniciar_tray()
+      sys.exit()
+      
+   janela = webview.create_window('Dupla Face', 'mvc/view/inicialView.html', js_api=inicialController(), maximized=True)
+   webview.start()
+   
+   iniciar_tray()
